@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="page-title">TARKOV TIMER by Pandoriun</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700&display=swap" rel="stylesheet">
+    
+    <link rel="apple-touch-icon" href="https://i.imgur.com/FyKytkJ.png"> 
+    <meta name="apple-mobile-web-app-capable" content="yes"> 
+    <meta name="theme-color" content="#1a1a1a"> 
+    <meta name="apple-mobile-web-app-title" content="Tarkov Timer">
+
+    <style>
+        /* Estilos Base */
+        body {
+            font-family: 'Consolas', monospace, sans-serif;
+            background-color: #1a1a1a;
+            background-image: url('https://i.imgur.com/FyKytkJ.png'); 
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color: #ddd;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 10px;
+        }
+
+        .container {
+            /* Fundo semitransparente fixo para o container */
+            background-color: rgba(30, 30, 30, 0.95); /* Cor padrão inicial */
+            border: 3px solid #f7a61d;
+            border-radius: 10px;
+            padding: 25px 20px; 
+            box-shadow: 0 0 25px rgba(247, 166, 29, 0.4);
+            text-align: center;
+            width: 90%;
+            max-width: 900px;
+            position: relative;
+            overflow: hidden;
+            transition: background-color 1.5s ease; /* Transição suave para a cor de fundo */
+        }
+        
+        /* NOVO: Estilos do Seletor de Idioma */
+        .language-selector {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 20;
+        }
+
+        .language-selector select {
+            background-color: #2e2e2e;
+            color: #f7a61d;
+            border: 1px solid #f7a61d;
+            padding: 5px 8px;
+            border-radius: 5px;
+            font-size: 0.9em;
+            cursor: pointer;
+            outline: none;
+            appearance: none; /* Remove a seta padrão em alguns browsers */
+        }
+        
+        /* TÍTULO TEMÁTICO */
+        .label-main {
+            font-family: 'Orbitron', sans-serif; 
+            font-size: 1.8em; 
+            font-weight: 700;
+            color: #f7a61d; 
+            margin-bottom: 5px; 
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 0 0 8px rgba(247, 166, 29, 0.6);
+        }
+
+        /* --- ALERTA DE CULTISTAS --- */
+        #cultist-alert-wrapper {
+            height: 3.5em; 
+            margin-bottom: 0px; 
+            visibility: hidden;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out, visibility 0.5s;
+        }
+
+        #cultist-alert {
+            font-family: Arial, sans-serif;
+            font-size: 0.9em;
+            font-weight: bold;
+            animation: blink 4s infinite; 
+            text-shadow: none;
+        }
+        
+        @keyframes blink {
+            0% { color: red; text-shadow: 0 0 5px rgba(255, 0, 0, 0.8); }
+            33% { color: black; text-shadow: none; }
+            66% { color: white; text-shadow: 0 0 5px rgba(255, 255, 255, 0.5); }
+            100% { color: red; text-shadow: 0 0 5px rgba(255, 0, 0, 0.8); }
+        }
+
+        #cultist-alert-countdown {
+            display: block;
+            font-size: 0.8em;
+            font-weight: normal;
+            margin-top: 3px;
+            color: #ccc;
+            text-shadow: none;
+        }
+
+        /* ESTILO PARA DESTAQUE DO SERVIDOR NO ALERTA DE CULTISTAS */
+        #cultist-alert-countdown .server-highlight {
+            font-weight: bold;
+            font-size: 1.1em; 
+            color: #fff; 
+            margin-left: 5px;
+        }
+
+        #cultist-alert-wrapper.active {
+            visibility: visible;
+            opacity: 1;
+        }
+        /* --- FIM DO ALERTA --- */
+
+        /* Canvas para Estrelas */
+        #stars-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0; /* Opacidade base, controlada por JS */
+            transition: opacity 2s ease-in-out; /* Transição suave */
+            z-index: 1;
+            pointer-events: none; /* Garante que o canvas não bloqueie interações com o conteúdo */
+            /* Aplica a máscara radial para mostrar estrelas apenas no centro */
+            mask-image: radial-gradient(circle at center, black 0%, black 50%, transparent 80%);
+            -webkit-mask-image: radial-gradient(circle at center, black 0%, black 50%, transparent 80%);
+        }
+        
+        .content-wrapper { position: relative; z-index: 10; }
+        .clocks-display { display: flex; justify-content: center; gap: 30px; margin: 15px 0; }
+        .clock-item { flex-basis: 45%; text-align: center; }
+        .clock-value { font-size: 5.0em; font-weight: bold; letter-spacing: 3px; margin-bottom: 5px; transition: color 0.5s, text-shadow 0.5s; }
+        .clock-label { font-size: 1.1em; color: #ccc; margin-bottom: 10px; text-transform: uppercase; }
+        .status-category { 
+            font-size: 1.3em; 
+            font-weight: bold; 
+            margin-top: -10px; 
+            margin-bottom: 20px; 
+            transition: color 0.5s; 
+        }
+
+        .controls { margin-top: 15px; padding-top: 15px; border-top: 1.5px dashed #555; }
+        .controls h2 { margin-top: 0; }
+        .controls label, .controls input, .controls button { display: block; margin: 8px auto; font-size: 1em; }
+
+        .controls input[type="time"] { 
+            background-color: #2e2e2e; 
+            color: #fff; 
+            border: 1px solid #777; 
+            padding: 8px; 
+            border-radius: 5px; 
+            width: 150px; 
+            text-align: center; 
+            font-size: 1.1em; 
+            display: block; 
+        }
+        .controls label[for="initial-time"] {
+            display: block; 
+        }
+        
+        .controls button { 
+            background-color: #723a00; 
+            color: white; 
+            padding: 10px 20px; 
+            border: 1px solid #f7a61d; 
+            border-radius: 5px; 
+            cursor: pointer; 
+            transition: background-color 0.3s, border-color 0.3s; 
+            text-transform: uppercase; 
+            font-weight: bold; 
+            margin-bottom: 10px;
+        }
+        .controls button:hover { background-color: #944e00; border-color: #fff; }
+
+        
+        /* ESTILOS DOS LINKS RÁPIDOS */
+        .submenu-title {
+            font-size: 1.1em; 
+            color: #f7a61d;
+            margin-bottom: 8px; 
+            text-transform: uppercase;
+        }
+        
+        .fast-links {
+            margin-top: 15px;
+            border-top: 1.5px dashed #555; 
+            padding-top: 10px; 
+            font-size: 0.85em; 
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px; 
+        }
+        
+        .fast-links a {
+            color: #f7a61d;
+            text-decoration: none;
+            text-transform: uppercase;
+            font-weight: bold;
+            letter-spacing: 1px;
+            padding: 4px 8px; 
+            border: 1px solid #f7a61d;
+            border-radius: 3px;
+            transition: background-color 0.3s, color 0.3s;
+            display: flex; 
+            align-items: center;
+            line-height: 1; 
+        }
+        .fast-links a:hover {
+            background-color: #f7a61d;
+            color: #1a1a1a;
+        }
+
+        /* Estilo específico para o link da MapGenie (Imagem) */
+        .mapgenie-link {
+            padding: 2px 8px !important; 
+        }
+        .mapgenie-link img {
+            height: 18px; 
+            vertical-align: middle;
+        }
+
+        /* ESTILOS DOS SUBMENUS (LINKS ADICIONAIS) */
+        .submenu-container {
+            margin-top: 15px; 
+            padding-top: 10px; 
+            border-top: 1px dashed #555;
+        }
+        
+        /* Título movido para o topo do .controls (agora é .submenu-title) */
+        .submenu-list {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px; 
+        }
+        .submenu-list a {
+            color: #ddd;
+            text-decoration: none;
+            font-size: 0.8em; 
+            padding: 4px 8px; 
+            border: 1px solid #555;
+            border-radius: 3px;
+            transition: background-color 0.3s;
+        }
+        .submenu-list a:hover {
+            background-color: #333;
+            color: white;
+        }
+
+        .footer { margin-top: 15px; font-size: 0.8em; color: #ddd; text-shadow: 1px 1px 1px #000; }
+        .footer a { color: inherit; text-decoration: none; border-bottom: 1px dotted #fff; }
+        .gemini-logo { display: inline-block; width: 12px; height: 12px; margin-left: 5px; vertical-align: middle; background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="rgb(255,255,255)" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-4H8V5h6.05L16 7.95V14h-3v5z"/></svg>'); background-size: cover; }
+        
+        @media (max-width: 650px) {
+            .container { padding: 20px 10px; }
+            .clocks-display { flex-direction: column; gap: 15px; }
+            .clock-value { font-size: 3.5em; }
+            #cultist-alert-wrapper { height: 3em; }
+            .fast-links a, .submenu-list a { font-size: 0.7em; padding: 3px 6px; }
+            .mapgenie-link img { height: 16px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="language-selector">
+        <select id="language-select" onchange="setLanguage(this.value)">
+            <option value="pt">Português (BR)</option>
+            <option value="en">English (US)</option>
+        </select>
+    </div>
+    
+    <canvas id="stars-canvas"></canvas>
+
+    <div class="content-wrapper">
+        <div id="main-label" class="label-main">TARKOV TIMER by Pandoriun</div>
+        
+        <div id="cultist-alert-wrapper">
+            <div id="cultist-alert">RISCO DE CULTISTAS</div>
+            <span id="cultist-alert-countdown"></span>
+        </div>
+        
+        <div class="clocks-display">
+            <div class="clock-item">
+                <div id="tarkov-clock-1" class="clock-value">13:00:00</div>
+                <div id="status-1" class="status-category">TARDE</div>
+                <div id="server-label-1" class="clock-label">Servidor 1</div>
+            </div>
+            <div class="clock-item">
+                <div id="tarkov-clock-2" class="clock-value">01:00:00</div>
+                <div id="status-2" class="status-category">MADRUGADA</div>
+                <div id="server-label-2" class="clock-label">Servidor 2 (+12h)</div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <h2 id="sync-title">Sincronizar Hora</h2>
+            <label id="initial-time-label" for="initial-time">Defina a hora exata atual *do Servidor 1* (HH:MM 24h):</label>
+            
+            <input type="time" id="initial-time" value="13:00"> 
+
+            <button onclick="setInitialTime()" id="sync-button">Iniciar e Sincronizar Relógios</button>
+            
+            <p id="speed-factor-info" style="font-size: 0.9em; color: #888; margin-bottom: 15px;">
+                *A hora correrá 7.1 vezes mais rápido.
+            </p>
+            
+            <div id="submenu-title" class="submenu-title">Recursos Adicionais</div>
+
+            <div class="fast-links">
+                <a href="https://mapgenie.io/tarkov" target="_blank" class="mapgenie-link">
+                    <img src="https://cdn.mapgenie.io/images/mapgenie.png" alt="MapGenie">
+                </a>
+                <a href="https://www.eft-ammo.com" target="_blank">EFT-AMMO</a>
+                <a href="https://escapefromtarkov.fandom.com/wiki/Quests" target="_blank">QUESTS</a>
+                <a href="https://static.wikia.nocookie.net/escapefromtarkov_gamepedia/images/1/19/QuestItemRequirements.png/revision/latest?cb=20250730162205" target="_blank" onerror="this.onerror=null; this.href='https://i.imgur.com/tNYAT09.jpeg';">KAPPA</a>
+            </div>
+            
+            <div class="submenu-container">
+                <div class="submenu-list">
+                    <a href="https://www.eft-ammo.com/ammo-graph" target="_blank">Ammo Graph</a>
+                    <a href="https://www.eft-ammo.com/flea-market-prices" target="_blank">Flea Prices</a>
+                    <a href="https://www.eft-ammo.com/headsets-table" target="_blank">Headset Table</a>
+                    <a href="https://www.eft-ammo.com/maps" target="_blank">Maps</a>
+                    <a href="https://www.eft-ammo.com/wiki" target="_blank">Wiki</a>
+                    <a href="https://www.eft-ammo.com/traders-reset-timers" target="_blank">Traders</a>
+                    <a href="https://tarkovtracker.ca/" target="_blank">Quest/Item Tracker</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="footer">
+    <span id="footer-text">Criado por:</span> 
+    <a href="https://www.youtube.com/@pandoriunmc" target="_blank">Pandoriun</a> 
+    By: 
+    <a href="https://gemini.google.com" target="_blank">GEMINI<span class="gemini-logo"></span></a>
+</div>
+
+<script>
+    const SPEED_FACTOR = 7.1; 
+    const TWELVE_HOURS_IN_MS = 12 * 60 * 60 * 1000;
+    const CULTIST_END_HOUR = 7; 
+    
+    let startTime;
+    let initialTarkovTime1;
+    let intervalId;
+    let currentLanguage = 'pt'; // Define o idioma padrão
+
+    // --- OBJETOS DE TRADUÇÃO ---
+    const translations = {
+        pt: {
+            title: "TARKOV TIMER by Pandoriun",
+            cultist_alert: "RISCO DE CULTISTAS",
+            cultist_countdown_part1: "restantes - ",
+            cultist_countdown_part2: " Servidor ",
+            server1: "Servidor 1",
+            server2: "Servidor 2 (+12h)",
+            sync_title: "Sincronizar Hora",
+            initial_time_label: "Defina a hora exata atual *do Servidor 1* (HH:MM 24h):",
+            sync_button: "Iniciar e Sincronizar Relógios",
+            speed_info: "*A hora correrá 7.1 vezes mais rápido.",
+            submenu_title: "Recursos Adicionais",
+            footer_text: "Criado por:",
+            status_names: { 
+                'MADRUGADA': 'MADRUGADA', 'MANHÃ': 'MANHÃ', 'DIA': 'DIA', 
+                'TARDE': 'TARDE', 'NOITE': 'NOITE' 
+            },
+            alert_prompt: "Por favor, insira a hora inicial (HH:MM)."
+        },
+        en: {
+            title: "TARKOV TIMER by Pandoriun",
+            cultist_alert: "CULTIST RISK",
+            cultist_countdown_part1: " remaining - ",
+            cultist_countdown_part2: " Server ",
+            server1: "Server 1",
+            server2: "Server 2 (+12h)",
+            sync_title: "Synchronize Time",
+            initial_time_label: "Set the exact current time *for Server 1* (HH:MM 24h):",
+            sync_button: "Start and Sync Clocks",
+            speed_info: "*Time will run 7.1 times faster.",
+            submenu_title: "Additional Resources",
+            footer_text: "Created by:",
+            status_names: { 
+                'MADRUGADA': 'PREDAWN', 'MANHÃ': 'MORNING', 'DIA': 'DAY', 
+                'TARDE': 'AFTERNOON', 'NOITE': 'NIGHT' 
+            },
+            alert_prompt: "Please enter the initial time (HH:MM)."
+        }
+    };
+    // --- FIM DOS OBJETOS DE TRADUÇÃO ---
+
+
+    // Mapeamento de CORES/ESTILOS usando os nomes das CATEGORIAS DETALHADAS
+    const STATUS_MAP = {
+        // [Cor do Relógio, Sombra do Relógio, Cor do Fundo]
+        "MADRUGADA_COR": ["#ADD8E6", "rgba(173, 216, 230, 0.8)", "rgba(10, 10, 30, 0.95)"], 
+        "AMANHECER":     ["#FFD700", "rgba(255, 215, 0, 0.8)", "rgba(50, 40, 20, 0.95)"], 
+        "MANHÃ_COR":     ["#ADFF2F", "rgba(173, 255, 47, 0.8)", "rgba(30, 50, 20, 0.95)"], 
+        "DIA":           ["#FFD700", "rgba(255, 215, 0, 0.8)", "rgba(60, 60, 30, 0.95)"], 
+        "TARDE_COR":     ["#FFA500", "rgba(255, 165, 0, 0.8)", "rgba(55, 35, 10, 0.95)"],
+        "ENTARDECER":    ["#FF4500", "rgba(255, 69, 0, 0.8)", "rgba(40, 20, 10, 0.95)"], 
+        "ANOITECER":     ["#9370DB", "rgba(147, 112, 219, 0.8)", "rgba(25, 15, 35, 0.95)"], 
+        "NOITE_COR":     ["#ADD8E6", "rgba(173, 216, 230, 0.8)", "rgba(15, 15, 40, 0.95)"],   
+    };
+
+    // Função para o rótulo do status (NOME interno, não traduzido)
+    function getInternalStatusName(hour24) {
+        if (hour24 >= 0 && hour24 < 6) return 'MADRUGADA';      // 00:00 - 05:59
+        if (hour24 >= 6 && hour24 < 8) return 'MANHÃ';          // 06:00 - 07:59
+        if (hour24 >= 8 && hour24 < 12) return 'DIA';           // 08:00 - 11:59
+        if (hour24 >= 12 && hour24 < 18) return 'TARDE';        // 12:00 - 17:59
+        if (hour24 >= 18 && hour24 < 24) return 'NOITE';        // 18:00 - 23:59
+        return 'UNKNOWN';
+    }
+
+    // Função para obter a categoria da cor (COR de fundo/relógio)
+    function getColorCategory(hour24) {
+        if (hour24 >= 0 && hour24 < 4) return 'MADRUGADA_COR';      // 00:00 - 03:59
+        if (hour24 >= 4 && hour24 < 6) return 'AMANHECER';     // 04:00 - 05:59
+        if (hour24 >= 6 && hour24 < 8) return 'MANHÃ_COR';       // 06:00 - 07:59
+        if (hour24 >= 8 && hour24 < 12) return 'DIA';          // 08:00 - 11:59
+        if (hour24 >= 12 && hour24 < 17) return 'TARDE_COR';       // 12:00 - 16:59
+        if (hour24 >= 17 && hour24 < 19) return 'ENTARDECER';    // 17:00 - 18:59
+        if (hour24 >= 19 && hour24 < 21) return 'ANOITECER';     // 19:00 - 20:59
+        if (hour24 >= 21 && hour24 < 24) return 'NOITE_COR';         // 21:00 - 23:59
+        return 'UNKNOWN'; 
+    }
+    
+    // CORRIGIDO: Implementação completa da lógica do Cultista
+    function calculateCountdown(currentTime, serverName) {
+        const h = currentTime.getHours();
+        const isCultistTime = (h >= 22 || h < CULTIST_END_HOUR); 
+        
+        if (!isCultistTime) {
+            return { isActive: false };
+        }
+
+        let endTarkovTime = new Date(currentTime.getTime());
+        endTarkovTime.setHours(CULTIST_END_HOUR, 0, 0, 0);
+
+        if (h >= 22) {
+            endTarkovTime.setDate(endTarkovTime.getDate() + 1);
+        }
+
+        let remainingMs = endTarkovTime.getTime() - currentTime.getTime();
+        if (remainingMs < 0) remainingMs = 0;
+
+        const totalSeconds = Math.floor(remainingMs / 1000);
+        const hours = String(Math.floor(totalSeconds / 3600)).padStart(2, '0');
+        const minutes = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, '0');
+        const seconds = String(totalSeconds % 60).padStart(2, '0');
+        
+        const countdownText = `${hours}:${minutes}:${seconds}`;
+
+        return { 
+            isActive: true, 
+            countdown: countdownText,
+            server: serverName
+        };
+    }
+
+    // CORRIGIDO: Implementação completa da lógica do Cultista e tradução
+    function updateCultistAlert(currentTarkovTime1, currentTarkovTime2) {
+        const T = translations[currentLanguage];
+        const alertWrapper = document.getElementById('cultist-alert-wrapper');
+        const countdownElement = document.getElementById('cultist-alert-countdown');
+        document.getElementById('cultist-alert').textContent = T.cultist_alert;
+        
+        const check1 = calculateCountdown(currentTarkovTime1, "1");
+        const check2 = calculateCountdown(currentTarkovTime2, "2");
+
+        let activeCheck = null;
+
+        if (check1.isActive && check2.isActive) {
+            if (check1.countdown > check2.countdown) {
+                 activeCheck = check1;
+            } else {
+                 activeCheck = check2;
+            }
+        } else if (check1.isActive) {
+            activeCheck = check1;
+        } else if (check2.isActive) {
+            activeCheck = check2;
+        }
+
+        if (activeCheck && activeCheck.isActive) {
+            const serverNameHighlighted = `<span class="server-highlight">${T.cultist_countdown_part2}${activeCheck.server}</span>`;
+            countdownElement.innerHTML = `${activeCheck.countdown} ${T.cultist_countdown_part1}${serverNameHighlighted}`;
+            alertWrapper.classList.add('active');
+        } else {
+            alertWrapper.classList.remove('active');
+            countdownElement.textContent = '';
+        }
+    }
+
+
+    // --- FUNÇÕES PRINCIPAIS ---
+
+    function updateTarkovClock() {
+        if (!startTime || !initialTarkovTime1) return;
+
+        const elapsedRealTime = Date.now() - startTime;
+        const elapsedTarkovTime = elapsedRealTime * SPEED_FACTOR;
+
+        // --- CLOCK 1 (Principal) ---
+        const currentTarkovTime1 = new Date(initialTarkovTime1.getTime() + elapsedTarkovTime);
+        const h1 = currentTarkovTime1.getHours();
+        const m1 = String(currentTarkovTime1.getMinutes()).padStart(2, '0');
+        const s1 = String(currentTarkovTime1.getSeconds()).padStart(2, '0');
+
+        document.getElementById('tarkov-clock-1').textContent = `${String(h1).padStart(2, '0')}:${m1}:${s1}`;
+        updateVisuals('tarkov-clock-1', 'status-1', h1, currentTarkovTime1, true); 
+        
+        // --- CLOCK 2 (+12 horas) ---
+        const currentTarkovTime2 = new Date(currentTarkovTime1.getTime() + TWELVE_HOURS_IN_MS);
+        const h2 = currentTarkovTime2.getHours();
+        const m2 = String(currentTarkovTime2.getMinutes()).padStart(2, '0');
+        const s2 = String(currentTarkovTime2.getSeconds()).padStart(2, '0');
+        
+        document.getElementById('tarkov-clock-2').textContent = `${String(h2).padStart(2, '0')}:${m2}:${s2}`;
+        updateVisuals('tarkov-clock-2', 'status-2', h2, currentTarkovTime2, false); 
+        
+        updateCultistAlert(currentTarkovTime1, currentTarkovTime2);
+    }
+
+    // updateVisuals com a COR DO NOME DE STATUS IGUAL À COR DO RELÓGIO E TRADUÇÃO
+    function updateVisuals(clockElementId, statusElementId, hour24, fullTime, isServer1) {
+        const T = translations[currentLanguage];
+        
+        // 1. OBTÉM A CATEGORIA DE COR/FUNDO (DETALHADA)
+        const colorCategory = getColorCategory(hour24);
+        const [clockColor, shadowColor, backgroundColor] = STATUS_MAP[colorCategory];
+        
+        // 2. OBTÉM O RÓTULO INTERNO E A TRADUÇÃO
+        const internalStatusName = getInternalStatusName(hour24);
+        const displayStatus = T.status_names[internalStatusName] || internalStatusName; // Traduz ou usa o nome interno
+        
+        const clockElement = document.getElementById(clockElementId);
+        const statusElement = document.getElementById(statusElementId);
+        
+        // Aplica CORES
+        clockElement.style.color = clockColor;
+        clockElement.style.textShadow = `0 0 15px ${shadowColor}, 0 0 5px rgba(0, 0, 0, 0.9)`;
+        
+        // Aplica o nome de status traduzido e sua cor
+        statusElement.textContent = displayStatus;
+        statusElement.style.color = clockColor; 
+        statusElement.className = `status-category`; 
+
+        
+        if (isServer1) {
+            // Aplica a cor de fundo do container (usa a categoria DETALHADA)
+            document.querySelector('.container').style.backgroundColor = backgroundColor;
+
+            // --- LÓGICA DE ESTRELAS COM OPACIDADE GRADATIVA (19:00 a 05:59) ---
+            const h = fullTime.getHours();
+            const m = fullTime.getMinutes();
+            const totalMinutes = h * 60 + m; 
+
+            let opacity = 0;
+            const MAX_CANVAS_OPACITY = 0.8; 
+
+            if (h >= 19 || h < 6) { 
+                if (h >= 19) { 
+                    const minutesToMidnight = (24 * 60) - totalMinutes; 
+                    opacity = 1 - (minutesToMidnight / (5 * 60)); 
+                } else { 
+                    const minutesFromMidnight = totalMinutes; 
+                    opacity = 1 - (minutesFromMidnight / (6 * 60)); 
+                }
+            }
+            
+            const finalOpacity = Math.max(0, Math.min(MAX_CANVAS_OPACITY, opacity * MAX_CANVAS_OPACITY));
+
+            canvas.style.opacity = finalOpacity.toFixed(3);
+        }
+    }
+
+    function startClock() {
+        if (intervalId) {
+            clearInterval(intervalId);
+        }
+        intervalId = setInterval(updateTarkovClock, 100); 
+        updateTarkovClock(); 
+    }
+    
+    // --- FUNÇÕES DE TRADUÇÃO E INICIALIZAÇÃO ---
+
+    function setLanguage(lang) {
+        currentLanguage = lang;
+        const T = translations[lang];
+        
+        // Elementos estáticos
+        document.getElementById('page-title').textContent = T.title;
+        document.getElementById('main-label').textContent = T.title;
+        document.getElementById('server-label-1').textContent = T.server1;
+        document.getElementById('server-label-2').textContent = T.server2;
+        document.getElementById('sync-title').textContent = T.sync_title;
+        document.getElementById('initial-time-label').textContent = T.initial_time_label;
+        document.getElementById('sync-button').textContent = T.sync_button;
+        document.getElementById('speed-factor-info').textContent = T.speed_info;
+        document.getElementById('submenu-title').textContent = T.submenu_title;
+        document.getElementById('footer-text').textContent = T.footer_text;
+
+        // Atualiza a exibição (para traduzir os status e alertas)
+        if (startTime) {
+            updateTarkovClock();
+        } else {
+            updateInitialDisplay(); // Atualiza status e alertas mesmo sem iniciar
+        }
+    }
+
+
+    // --- Funções de Canvas (Mantidas) ---
+    let canvas, ctx;
+    const stars = [];
+    const NUM_STARS = 500; 
+    const MAX_STAR_SIZE = 2; 
+    const STAR_COLOR = 'rgba(255, 255, 255, '; 
+    
+    function generateStar() { /* ... */ return {x: Math.random() * canvas.width,y: Math.random() * canvas.height,radius: Math.random() * MAX_STAR_SIZE + 0.5,alpha: Math.random() * 0.5 + 0.5 }; }
+    function drawStars() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height); 
+        for (let i = 0; i < stars.length; i++) {
+            const star = stars[i];
+            ctx.beginPath();
+            ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2, false);
+            ctx.fillStyle = STAR_COLOR + star.alpha + ')'; 
+            ctx.fill();
+        }
+    }
+    function initializeCanvasAndStars() { 
+        canvas = document.getElementById('stars-canvas');
+        ctx = canvas.getContext('2d');
+        const container = document.querySelector('.container');
+        const setCanvasSize = () => {
+             canvas.width = container.offsetWidth;
+             canvas.height = container.offsetHeight;
+             drawStars(); 
+        };
+        setCanvasSize();
+        for (let i = 0; i < NUM_STARS; i++) {
+            stars.push(generateStar());
+        }
+        window.addEventListener('resize', setCanvasSize);
+        drawStars();
+    }
+
+
+    // --- Funções de Sincronização e Inicialização (Mantidas e Atualizadas para Tradução) ---
+    function setInitialTime() {
+        const timeInput = document.getElementById('initial-time').value;
+        
+        if (!timeInput) {
+            alert(translations[currentLanguage].alert_prompt); // Usa mensagem traduzida
+            return;
+        }
+
+        const [hours, minutes] = timeInput.split(':').map(Number);
+
+        startTime = Date.now(); 
+
+        initialTarkovTime1 = new Date('2000/01/01');
+        initialTarkovTime1.setHours(hours, minutes, 0, 0); 
+
+        startClock();
+    }
+
+    function updateInitialDisplay() {
+        const initialValue = document.getElementById('initial-time').value;
+        const [hours, minutes] = initialValue.split(':').map(Number);
+        
+        const h1 = hours;
+        const m = minutes;
+        
+        document.getElementById('tarkov-clock-1').textContent = `${String(h1).padStart(2, '0')}:${String(m).padStart(2, '0')}:00`;
+        
+        const initialTime1 = new Date('2000/01/01');
+        initialTime1.setHours(h1, m, 0, 0);
+        
+        updateVisuals('tarkov-clock-1', 'status-1', h1, initialTime1, true);
+        
+        const h2 = (h1 + 12) % 24;
+        
+        document.getElementById('tarkov-clock-2').textContent = `${String(h2).padStart(2, '0')}:${String(m).padStart(2, '0')}:00`;
+        
+        const initialTime2 = new Date('2000/01/01');
+        initialTime2.setHours(h2, m, 0, 0);
+        updateVisuals('tarkov-clock-2', 'status-2', h2, initialTime2, false);
+        
+        document.getElementById('cultist-alert-wrapper').classList.remove('active');
+    }
+
+    function initializeClockDisplay() {
+        initializeCanvasAndStars();
+        
+        // 1. Define o idioma inicial (Português, padrão)
+        const initialLang = document.getElementById('language-select').value;
+        setLanguage(initialLang); 
+        
+        // 2. Configura a exibição inicial
+        updateInitialDisplay();
+        
+        // 3. Listener do Enter
+        const timeInput = document.getElementById('initial-time');
+        
+        timeInput.addEventListener('keydown', function(event) {
+            if (event.key === 'Enter' || event.keyCode === 13) {
+                event.preventDefault(); 
+                setInitialTime();
+            }
+        });
+    }
+
+    window.onload = initializeClockDisplay; 
+</script>
+
+</body>
+</html>
