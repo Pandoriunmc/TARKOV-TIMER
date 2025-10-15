@@ -277,6 +277,7 @@
 
         .footer { margin-top: 15px; font-size: 0.8em; color: #ddd; text-shadow: 1px 1px 1px #000; }
         .footer a { color: inherit; text-decoration: none; border-bottom: 1px dotted #fff; }
+        .footer a:hover { border-bottom-style: solid; }
         .gemini-logo { display: inline-block; width: 12px; height: 12px; margin-left: 5px; vertical-align: middle; background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="rgb(255,255,255)" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-4H8V5h6.05L16 7.95V14h-3v5z"/></svg>'); background-size: cover; }
         
         @media (max-width: 650px) {
@@ -368,21 +369,30 @@
 <div class="footer">
     <span id="footer-text">Criado por:</span> 
     <a href="https://www.youtube.com/@pandoriunmc" target="_blank">Pandoriun</a> 
-    By: 
+    Por: 
     <a href="https://gemini.google.com" target="_blank">GEMINI<span class="gemini-logo"></span></a>
 </div>
 
 <script>
     // --- CONSTANTES ATUALIZADAS ---
-    const SPEED_FACTOR = 7; // Alterado para 7, o valor correto
+    const SPEED_FACTOR = 7; // Correto
     const ONE_HOUR_IN_MS = 60 * 60 * 1000;
-    const THREE_HOURS_IN_MS = 3 * ONE_HOUR_IN_MS; // UTC+3 Offset
+    const THREE_HOURS_IN_MS = 3 * ONE_HOUR_IN_MS; // UTC+3 Offset (3 horas)
     const TWELVE_HOURS_IN_MS = 12 * ONE_HOUR_IN_MS;
-    const ONE_DAY_IN_MS = 24 * ONE_HOUR_IN_MS;
+    const ONE_DAY_IN_MS = 24 * ONE_HOUR_IN_MS; // 86,400,000 ms
+
+    // Corrigido para ser o tempo REAL que leva para Tarkov avançar 24 horas (um dia de Tarkov)
+    const ACCELERATED_DAY_IN_MS = ONE_DAY_IN_MS / SPEED_FACTOR; 
+
+    // Horário de fim dos Cultistas (7:00 da manhã de Tarkov)
     const CULTIST_END_HOUR = 7; 
+    const CULTIST_END_MS_OF_DAY = CULTIST_END_HOUR * ONE_HOUR_IN_MS;
+    const CULTIST_START_HOUR = 22; // 22:00 de Tarkov
+    const CULTIST_START_MS_OF_DAY = CULTIST_START_HOUR * ONE_HOUR_IN_MS;
     
-    let startTime;
-    let initialTarkovTime1;
+    let startTime; // Real timestamp (Date.now()) quando o relógio começou
+    let initialTarkovTime1Ms; // Milissegundos do dia de Tarkov (0 a 86,400,000) no momento do início
+
     let intervalId;
     let currentLanguage = 'pt';
 
@@ -399,7 +409,7 @@
             sync_online_button: "SINCRONIZAR ONLINE",
             sync_manual_button: "Ajustar Manualmente e Iniciar",
             initial_time_label: "Ajuste Manual: Defina a hora exata atual *do Servidor 1* (HH:MM 24h):",
-            speed_info: "*A hora correrá 7.0 vezes mais rápido.", // Atualizado
+            speed_info: "*A hora correrá 7.0 vezes mais rápido.",
             submenu_title: "Recursos Adicionais",
             footer_text: "Criado por:",
             status_names: { 
@@ -419,7 +429,7 @@
             sync_online_button: "SYNC ONLINE",
             sync_manual_button: "Adjust Manually and Start",
             initial_time_label: "Manual Adjust: Set the exact current time *for Server 1* (HH:MM 24h):",
-            speed_info: "*Time will run 7.0 times faster.", // Atualizado
+            speed_info: "*Time will run 7.0 times faster.",
             submenu_title: "Additional Resources",
             footer_text: "Created by:",
             status_names: { 
@@ -435,17 +445,17 @@
     // Mapeamento de CORES/ESTILOS (mantido)
     const STATUS_MAP = {
         "MADRUGADA_COR": ["#ADD8E6", "rgba(173, 216, 230, 0.8)", "rgba(10, 10, 30, 0.95)"], 
-        "AMANHECER":      ["#FFD700", "rgba(255, 215, 0, 0.8)", "rgba(50, 40, 20, 0.95)"], 
-        "MANHÃ_COR":      ["#ADFF2F", "rgba(173, 255, 47, 0.8)", "rgba(30, 50, 20, 0.95)"], 
-        "DIA":            ["#FFD700", "rgba(255, 215, 0, 0.8)", "rgba(60, 60, 30, 0.95)"], 
-        "TARDE_COR":      ["#FFA500", "rgba(255, 165, 0, 0.8)", "rgba(55, 35, 10, 0.95)"],
-        "ENTARDECER":     ["#FF4500", "rgba(255, 69, 0, 0.8)", "rgba(40, 20, 10, 0.95)"], 
-        "ANOITECER":      ["#9370DB", "rgba(147, 112, 219, 0.8)", "rgba(25, 15, 35, 0.95)"], 
-        "NOITE_COR":      ["#ADD8E6", "rgba(173, 216, 230, 0.8)", "rgba(15, 15, 40, 0.95)"],   
+        "AMANHECER": 	 ["#FFD700", "rgba(255, 215, 0, 0.8)", "rgba(50, 40, 20, 0.95)"], 
+        "MANHÃ_COR": 	 ["#ADFF2F", "rgba(173, 255, 47, 0.8)", "rgba(30, 50, 20, 0.95)"], 
+        "DIA": 		     ["#FFD700", "rgba(255, 215, 0, 0.8)", "rgba(60, 60, 30, 0.95)"], 
+        "TARDE_COR": 	 ["#FFA500", "rgba(255, 165, 0, 0.8)", "rgba(55, 35, 10, 0.95)"],
+        "ENTARDECER": 	 ["#FF4500", "rgba(255, 69, 0, 0.8)", "rgba(40, 20, 10, 0.95)"], 
+        "ANOITECER": 	 ["#9370DB", "rgba(147, 112, 219, 0.8)", "rgba(25, 15, 35, 0.95)"], 
+        "NOITE_COR": 	 ["#ADD8E6", "rgba(173, 216, 230, 0.8)", "rgba(15, 15, 40, 0.95)"], 	
     };
 
     // Funções de Status e Cores (mantidas)
-    function getInternalStatusName(hour24) { /* ... */
+    function getInternalStatusName(hour24) { 
         if (hour24 >= 0 && hour24 < 6) return 'MADRUGADA';
         if (hour24 >= 6 && hour24 < 8) return 'MANHÃ'; 
         if (hour24 >= 8 && hour24 < 12) return 'DIA'; 
@@ -454,7 +464,7 @@
         return 'UNKNOWN';
     }
 
-    function getColorCategory(hour24) { /* ... */
+    function getColorCategory(hour24) { 
         if (hour24 >= 0 && hour24 < 4) return 'MADRUGADA_COR';
         if (hour24 >= 4 && hour24 < 6) return 'AMANHECER'; 
         if (hour24 >= 6 && hour24 < 8) return 'MANHÃ_COR'; 
@@ -466,24 +476,37 @@
         return 'UNKNOWN'; 
     }
     
-    // Funções Cultist (mantidas)
-    function calculateCountdown(currentTime, serverName) { /* ... */
-        const h = currentTime.getHours();
-        const isCultistTime = (h >= 22 || h < CULTIST_END_HOUR); 
+    /**
+     * NOVO CÁLCULO DE COUNTDOWN
+     * @param {number} currentTarkovTimeMs O tempo de Tarkov em milissegundos (0 a ONE_DAY_IN_MS).
+     * @param {string} serverName O nome do servidor ('1' ou '2').
+     * @returns {{isActive: boolean, countdown: string, server: string}}
+     */
+    function calculateCountdown(currentTarkovTimeMs, serverName) {
+        // Horas de Tarkov
+        const h = Math.floor(currentTarkovTimeMs / ONE_HOUR_IN_MS);
+        
+        // Verifica se estamos no período dos cultistas (22:00 até 06:59:59)
+        const isCultistTime = (h >= CULTIST_START_HOUR || h < CULTIST_END_HOUR); 
         
         if (!isCultistTime) {
             return { isActive: false };
         }
 
-        let endTarkovTime = new Date(currentTime.getTime());
-        endTarkovTime.setHours(CULTIST_END_HOUR, 0, 0, 0);
+        let remainingMs;
+        
+        if (h >= CULTIST_START_HOUR) {
+            // Se estiver entre 22:00 e 23:59:59 (fim no dia seguinte)
+            const msToEndOfDay = ONE_DAY_IN_MS - currentTarkovTimeMs;
+            const msFromStartOfDay = CULTIST_END_MS_OF_DAY;
+            remainingMs = msToEndOfDay + msFromStartOfDay;
 
-        if (h >= 22) {
-            endTarkovTime.setDate(endTarkovTime.getDate() + 1);
+        } else {
+            // Se estiver entre 00:00 e 06:59:59 (fim no mesmo dia)
+            remainingMs = CULTIST_END_MS_OF_DAY - currentTarkovTimeMs;
         }
 
-        let remainingMs = endTarkovTime.getTime() - currentTime.getTime();
-        if (remainingMs < 0) remainingMs = 0;
+        if (remainingMs < 0) remainingMs = 0; // Prevenção de erros
 
         const totalSeconds = Math.floor(remainingMs / 1000);
         const hours = String(Math.floor(totalSeconds / 3600)).padStart(2, '0');
@@ -499,18 +522,20 @@
         };
     }
 
-    function updateCultistAlert(currentTarkovTime1, currentTarkovTime2) { /* ... */
+    function updateCultistAlert(timeInDayMs1, timeInDayMs2) {
         const T = translations[currentLanguage];
         const alertWrapper = document.getElementById('cultist-alert-wrapper');
         const countdownElement = document.getElementById('cultist-alert-countdown');
         document.getElementById('cultist-alert').textContent = T.cultist_alert;
         
-        const check1 = calculateCountdown(currentTarkovTime1, "1");
-        const check2 = calculateCountdown(currentTarkovTime2, "2");
+        const check1 = calculateCountdown(timeInDayMs1, "1");
+        const check2 = calculateCountdown(timeInDayMs2, "2");
 
         let activeCheck = null;
 
+        // Prioriza o contador maior (o que está mais longe de acabar), para dar mais tempo ao jogador
         if (check1.isActive && check2.isActive) {
+            // Compara os milissegundos restantes, o maior é o mais importante
             if (check1.countdown > check2.countdown) {
                  activeCheck = check1;
             } else {
@@ -533,48 +558,55 @@
     }
 
 
-    // --- FUNÇÕES PRINCIPAIS (updateTarkovClock mantida, lógica de tempo) ---
+    // --- FUNÇÕES PRINCIPAIS ---
 
     function updateTarkovClock() {
-        if (!startTime || !initialTarkovTime1) return;
+        if (startTime === undefined || initialTarkovTime1Ms === undefined) return;
 
         const elapsedRealTime = Date.now() - startTime;
+        
+        // Aceleração do tempo real decorrido
         const elapsedTarkovTime = elapsedRealTime * SPEED_FACTOR;
         
-        // CORREÇÃO DE LÓGICA: O tempo de Tarkov deve envolver (initialTarkovTime1 + elapsedTarkovTime) % ONE_DAY_IN_MS
-        const totalTarkovTimeMs = initialTarkovTime1.getTime() + elapsedTarkovTime;
-
-        // O módulo aqui garante que o tempo se repita a cada 24h
+        // CORREÇÃO DE LÓGICA: O módulo agora usa o tempo real que representa um dia de Tarkov
+        // O tempo total de jogo (em milissegundos) é o tempo de início + o tempo acelerado decorrido.
+        const totalTarkovTimeMs = initialTarkovTime1Ms + elapsedTarkovTime;
+        
+        // O módulo garante que o tempo se repita a cada 24 horas de Tarkov (86,400,000 ms)
         const timeInDayMs1 = totalTarkovTimeMs % ONE_DAY_IN_MS; 
         
         // --- CLOCK 1 (Principal) ---
-        const currentTarkovTime1 = new Date(timeInDayMs1); // Cria um objeto Date a partir dos milissegundos do dia
-        currentTarkovTime1.setUTCHours(currentTarkovTime1.getUTCHours()); // Garante que a hora seja a hora real do milissegundo.
+        // Converte os milissegundos do dia em horas/min/seg
+        const h1 = Math.floor(timeInDayMs1 / ONE_HOUR_IN_MS);
+        const m1 = Math.floor((timeInDayMs1 % ONE_HOUR_IN_MS) / (60 * 1000));
+        const s1 = Math.floor((timeInDayMs1 % (60 * 1000)) / 1000);
 
-        const h1 = currentTarkovTime1.getUTCHours();
-        const m1 = String(currentTarkovTime1.getUTCMinutes()).padStart(2, '0');
-        const s1 = String(currentTarkovTime1.getUTCSeconds()).padStart(2, '0');
-
-        document.getElementById('tarkov-clock-1').textContent = `${String(h1).padStart(2, '0')}:${m1}:${s1}`;
-        updateVisuals('tarkov-clock-1', 'status-1', h1, currentTarkovTime1, true); 
+        document.getElementById('tarkov-clock-1').textContent = `${String(h1).padStart(2, '0')}:${String(m1).padStart(2, '0')}:${String(s1).padStart(2, '0')}`;
+        updateVisuals('tarkov-clock-1', 'status-1', h1, timeInDayMs1, true); 
         
         // --- CLOCK 2 (+12 horas) ---
-        const timeInDayMs2 = (totalTarkovTimeMs + TWELVE_HOURS_IN_MS) % ONE_DAY_IN_MS;
-        const currentTarkovTime2 = new Date(timeInDayMs2);
-        currentTarkovTime2.setUTCHours(currentTarkovTime2.getUTCHours()); // Usa UTC também
-
-        const h2 = currentTarkovTime2.getUTCHours();
-        const m2 = String(currentTarkovTime2.getUTCMinutes()).padStart(2, '0');
-        const s2 = String(currentTarkovTime2.getUTCSeconds()).padStart(2, '0');
+        const timeInDayMs2 = (timeInDayMs1 + TWELVE_HOURS_IN_MS) % ONE_DAY_IN_MS;
         
-        document.getElementById('tarkov-clock-2').textContent = `${String(h2).padStart(2, '0')}:${m2}:${s2}`;
-        updateVisuals('tarkov-clock-2', 'status-2', h2, currentTarkovTime2, false); 
+        const h2 = Math.floor(timeInDayMs2 / ONE_HOUR_IN_MS);
+        const m2 = Math.floor((timeInDayMs2 % ONE_HOUR_IN_MS) / (60 * 1000));
+        const s2 = Math.floor((timeInDayMs2 % (60 * 1000)) / 1000);
         
-        updateCultistAlert(currentTarkovTime1, currentTarkovTime2);
+        document.getElementById('tarkov-clock-2').textContent = `${String(h2).padStart(2, '0')}:${String(m2).padStart(2, '0')}:${String(s2).padStart(2, '0')}`;
+        updateVisuals('tarkov-clock-2', 'status-2', h2, timeInDayMs2, false); 
+        
+        // ALERTA DE CULTISTAS
+        updateCultistAlert(timeInDayMs1, timeInDayMs2);
     }
 
-    function updateVisuals(clockElementId, statusElementId, hour24, fullTime, isServer1) {
-        // ... (Corpo da função mantido) ...
+    /**
+     * Atualiza as cores e o estado visual da tela.
+     * @param {string} clockElementId ID do elemento do relógio.
+     * @param {string} statusElementId ID do elemento do status.
+     * @param {number} hour24 Hora de Tarkov (0-23).
+     * @param {number} timeInDayMs Tempo de Tarkov em milissegundos (0 a 86,400,000).
+     * @param {boolean} isServer1 Se é o servidor principal (para cor de fundo e estrelas).
+     */
+    function updateVisuals(clockElementId, statusElementId, hour24, timeInDayMs, isServer1) {
         const T = translations[currentLanguage];
         
         const colorCategory = getColorCategory(hour24);
@@ -597,19 +629,22 @@
         if (isServer1) {
             document.querySelector('.container').style.backgroundColor = backgroundColor;
 
-            // --- LÓGICA DE ESTRELAS (Baseada em UTC Time) ---
-            const h = fullTime.getUTCHours();
-            const m = fullTime.getUTCMinutes();
+            // --- LÓGICA DE ESTRELAS (Baseada na hora de Tarkov) ---
+            const h = hour24;
+            const m = Math.floor((timeInDayMs % ONE_HOUR_IN_MS) / (60 * 1000));
             const totalMinutes = h * 60 + m; 
 
             let opacity = 0;
             const MAX_CANVAS_OPACITY = 0.8; 
 
+            // Estrelas acendem de 19:00 até 06:00
             if (h >= 19 || h < 6) { 
                 if (h >= 19) { 
-                    const minutesToMidnight = (24 * 60) - totalMinutes; 
-                    opacity = 1 - (minutesToMidnight / (5 * 60)); 
+                    // Transição (19:00 -> 24:00)
+                    const minutesSince19 = totalMinutes - (19 * 60); 
+                    opacity = minutesSince19 / (5 * 60); 
                 } else { 
+                    // Transição (00:00 -> 06:00)
                     const minutesFromMidnight = totalMinutes; 
                     opacity = 1 - (minutesFromMidnight / (6 * 60)); 
                 }
@@ -631,32 +666,48 @@
     
     // --- NOVO: FUNÇÃO DE SINCRONIZAÇÃO ONLINE (Baseada no tempo real e UTC+3) ---
     function syncOnline() {
-        // 1. Captura o tempo real atual (em milissegundos)
+        // 1. Captura o timestamp real
         startTime = Date.now(); 
-        const realTimeMs = startTime;
-
-        // 2. Aplica o fator de aceleração (x7) e o offset de UTC+3 (3 horas)
-        // A lógica do Tarkov é: Tarkov Time = (Real Time * 7) + 3 horas
-        const tarkovStartMs = (realTimeMs * SPEED_FACTOR) + THREE_HOURS_IN_MS;
-
-        // 3. O módulo por um dia deve ser aplicado.
-        // O valor base para a contagem será o tempo em milissegundos do dia no Tarkov.
-        const timeInDayMs = tarkovStartMs % ONE_DAY_IN_MS;
         
-        // 4. Converte para um objeto Date, forçando-o a representar o tempo em UTC
-        // (Isso anula o fuso horário local e garante que as horas extraídas sejam as horas de Tarkov).
-        initialTarkovTime1 = new Date(timeInDayMs);
+        // 2. Calcula o "tempo base de Tarkov" em milissegundos
+        // Lógica de Tarkov: Tarkov Time = (Real Time * 7) + 3 horas (Offset)
+        const realTimeSinceEpoch = startTime; // Milissegundos desde 1970/01/01 00:00:00 UTC
         
-        // IMPORTANTE: Para que o relógio funcione corretamente a partir daqui,
-        // o updateTarkovClock deve usar getUTCHours/Minutes/Seconds
-        // e o initialTarkovTime1.getTime() deve ser tratado como o ponto inicial
-        // de tempo de Tarkov em milissegundos.
+        // O tempo que o relógio de Tarkov teria percorrido se tivesse começado no Unix Epoch
+        const acceleratedTimeSinceEpoch = realTimeSinceEpoch * SPEED_FACTOR;
+        
+        // Adiciona o offset de 3 horas (UTC+3)
+        const tarkovTimeWithOffset = acceleratedTimeSinceEpoch + THREE_HOURS_IN_MS;
+
+        // O milissegundo inicial do dia no Tarkov é o módulo por 24h (86,400,000 ms)
+        initialTarkovTime1Ms = tarkovTimeWithOffset % ONE_DAY_IN_MS;
+        
+        startClock();
+    }
+
+
+    // --- Funções de Sincronização Manual ---
+    function setInitialTime() {
+        const timeInput = document.getElementById('initial-time').value;
+        
+        if (!timeInput) {
+            alert(translations[currentLanguage].alert_prompt); 
+            return;
+        }
+
+        const [hours, minutes] = timeInput.split(':').map(Number);
+        
+        // 1. Captura o timestamp real
+        startTime = Date.now(); 
+
+        // 2. Calcula o ponto de partida em milissegundos de Tarkov para o Servidor 1 (0 a 86,400,000)
+        initialTarkovTime1Ms = (hours * ONE_HOUR_IN_MS) + (minutes * 60 * 1000);
 
         startClock();
     }
 
 
-    // --- Funções de Tradução e Inicialização (Atualizadas para incluir o novo botão) ---
+    // --- Funções de Tradução, Canvas e Inicialização (Mantidas) ---
 
     function setLanguage(lang) {
         currentLanguage = lang;
@@ -679,23 +730,21 @@
         document.getElementById('footer-text').textContent = T.footer_text;
 
         // Atualiza a exibição (para traduzir os status e alertas)
-        if (startTime) {
+        if (startTime !== undefined) {
             updateTarkovClock();
         } else {
             updateInitialDisplay(); 
         }
     }
 
-
-    // --- Funções de Canvas (mantidas) ---
     let canvas, ctx;
     const stars = [];
     const NUM_STARS = 500; 
     const MAX_STAR_SIZE = 2; 
     const STAR_COLOR = 'rgba(255, 255, 255, '; 
     
-    function generateStar() { /* ... */ return {x: Math.random() * canvas.width,y: Math.random() * canvas.height,radius: Math.random() * MAX_STAR_SIZE + 0.5,alpha: Math.random() * 0.5 + 0.5 }; }
-    function drawStars() { /* ... */
+    function generateStar() { return {x: Math.random() * canvas.width,y: Math.random() * canvas.height,radius: Math.random() * MAX_STAR_SIZE + 0.5,alpha: Math.random() * 0.5 + 0.5 }; }
+    function drawStars() { 
         ctx.clearRect(0, 0, canvas.width, canvas.height); 
         for (let i = 0; i < stars.length; i++) {
             const star = stars[i];
@@ -705,7 +754,7 @@
             ctx.fill();
         }
     }
-    function initializeCanvasAndStars() { /* ... */
+    function initializeCanvasAndStars() { 
         canvas = document.getElementById('stars-canvas');
         ctx = canvas.getContext('2d');
         const container = document.querySelector('.container');
@@ -723,27 +772,7 @@
     }
 
 
-    // --- Função de Sincronização Manual (Mantida para ser a função de 'Ajustar Manualmente') ---
-    function setInitialTime() {
-        const timeInput = document.getElementById('initial-time').value;
-        
-        if (!timeInput) {
-            alert(translations[currentLanguage].alert_prompt); 
-            return;
-        }
-
-        const [hours, minutes] = timeInput.split(':').map(Number);
-
-        startTime = Date.now(); 
-
-        // Cria o ponto de partida manual, tratado como UTC para ser compatível com o updateTarkovClock
-        initialTarkovTime1 = new Date('2000/01/01');
-        initialTarkovTime1.setUTCHours(hours, minutes, 0, 0); 
-
-        startClock();
-    }
-
-    function updateInitialDisplay() { /* ... */
+    function updateInitialDisplay() { 
         // Usa o tempo de inicialização manual para exibir antes da sincronização
         const initialValue = document.getElementById('initial-time').value;
         const [hours, minutes] = initialValue.split(':').map(Number);
@@ -751,20 +780,17 @@
         const h1 = hours;
         const m = minutes;
         
+        // Tempo em milissegundos para a exibição inicial
+        const initialTime1Ms = (h1 * ONE_HOUR_IN_MS) + (m * 60 * 1000);
+
         document.getElementById('tarkov-clock-1').textContent = `${String(h1).padStart(2, '0')}:${String(m).padStart(2, '0')}:00`;
-        
-        const initialTime1 = new Date('2000/01/01');
-        initialTime1.setUTCHours(h1, m, 0, 0);
-        
-        updateVisuals('tarkov-clock-1', 'status-1', h1, initialTime1, true);
+        updateVisuals('tarkov-clock-1', 'status-1', h1, initialTime1Ms, true);
         
         const h2 = (h1 + 12) % 24;
-        
+        const initialTime2Ms = (initialTime1Ms + TWELVE_HOURS_IN_MS) % ONE_DAY_IN_MS;
+
         document.getElementById('tarkov-clock-2').textContent = `${String(h2).padStart(2, '0')}:${String(m).padStart(2, '0')}:00`;
-        
-        const initialTime2 = new Date('2000/01/01');
-        initialTime2.setUTCHours(h2, m, 0, 0);
-        updateVisuals('tarkov-clock-2', 'status-2', h2, initialTime2, false);
+        updateVisuals('tarkov-clock-2', 'status-2', h2, initialTime2Ms, false);
         
         document.getElementById('cultist-alert-wrapper').classList.remove('active');
     }
@@ -786,8 +812,8 @@
             }
         });
         
-        // NOVO: Sincronização automática ao carregar a página (opcional, mas bom para um timer online)
-        // syncOnline(); 
+        // NOVO: Sincronização automática ao carregar a página 
+        syncOnline(); 
     }
 
     window.onload = initializeClockDisplay; 
