@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -33,7 +33,7 @@
 
         .container {
             /* Fundo semitransparente fixo para o container */
-            background-color: rgba(30, 30, 30, 0.95); /* Cor padrão inicial */
+            background-color: rgba(30, 30, 30, 0.95); 
             border: 3px solid #f7a61d;
             border-radius: 10px;
             padding: 25px 20px; 
@@ -43,7 +43,7 @@
             max-width: 900px;
             position: relative;
             overflow: hidden;
-            transition: background-color 1.5s ease; /* Transição suave para a cor de fundo */
+            transition: background-color 1.5s ease; 
         }
         
         .language-selector {
@@ -51,6 +51,14 @@
             top: 10px;
             right: 10px;
             z-index: 20;
+            display: flex; 
+            align-items: center; 
+            gap: 5px; 
+        }
+        
+        .language-icon {
+            font-size: 1.2em;
+            color: #f7a61d;
         }
 
         .language-selector select {
@@ -63,6 +71,7 @@
             cursor: pointer;
             outline: none;
             appearance: none;
+            line-height: 1.2;
         }
         
         /* TÍTULO TEMÁTICO (mantidos) */
@@ -157,9 +166,9 @@
         
         .sync-buttons-wrapper {
             display: flex;
-            flex-direction: column; /* Para empilhar os botões */
+            flex-direction: column; 
             align-items: center;
-            gap: 10px; /* Espaço entre os botões */
+            gap: 10px; 
             margin-bottom: 15px;
         }
         
@@ -188,17 +197,17 @@
             transition: background-color 0.3s, border-color 0.3s; 
             text-transform: uppercase; 
             font-weight: bold; 
-            margin-bottom: 0px; /* Removido o margin-bottom para usar o gap do wrapper */
+            margin-bottom: 0px; 
         }
         .controls button:hover { background-color: #944e00; border-color: #fff; }
 
         /* NOVO ESTILO: Botão de Sincronização Online (Azul) */
         #sync-online-button {
-            background-color: #1e88e5; /* Azul mais escuro */
-            border-color: #64b5f6; /* Azul mais claro para a borda */
+            background-color: #1e88e5; 
+            border-color: #64b5f6; 
         }
         #sync-online-button:hover {
-            background-color: #42a5f5; /* Azul um pouco mais claro no hover */
+            background-color: #42a5f5; 
             border-color: white;
         }
 
@@ -295,9 +304,12 @@
 
 <div class="container">
     <div class="language-selector">
+        <span class="language-icon">🌍</span> 
         <select id="language-select" onchange="setLanguage(this.value)">
             <option value="pt">Português (BR)</option>
-            <option value="en">English (US)</option>
+            <option value="en" selected>English (US)</option>
+            <option value="es">Español (ES)</option>
+            <option value="ru">Русский (RU)</option>
         </select>
     </div>
     
@@ -307,40 +319,40 @@
         <div id="main-label" class="label-main">TARKOV TIMER by Pandoriun</div>
         
         <div id="cultist-alert-wrapper">
-            <div id="cultist-alert">RISCO DE CULTISTAS</div>
+            <div id="cultist-alert">CULTIST RISK</div>
             <span id="cultist-alert-countdown"></span>
         </div>
         
         <div class="clocks-display">
             <div class="clock-item">
                 <div id="tarkov-clock-1" class="clock-value">13:00:00</div>
-                <div id="status-1" class="status-category">TARDE</div>
-                <div id="server-label-1" class="clock-label">Servidor 1</div>
+                <div id="status-1" class="status-category">AFTERNOON</div>
+                <div id="server-label-1" class="clock-label">Server 1</div>
             </div>
             <div class="clock-item">
                 <div id="tarkov-clock-2" class="clock-value">01:00:00</div>
-                <div id="status-2" class="status-category">MADRUGADA</div>
-                <div id="server-label-2" class="clock-label">Servidor 2 (+12h)</div>
+                <div id="status-2" class="status-category">PREDAWN</div>
+                <div id="server-label-2" class="clock-label">Server 2 (+12h)</div>
             </div>
         </div>
 
         <div class="controls">
-            <h2 id="sync-title">Sincronizar Hora</h2>
+            <h2 id="sync-title">Synchronize Time</h2>
             
             <div class="sync-buttons-wrapper">
-                <button onclick="syncOnline()" id="sync-online-button">SINCRONIZAR ONLINE</button>
+                <button onclick="syncOnline()" id="sync-online-button">SYNC ONLINE</button>
                 
-                <button onclick="setInitialTime()" id="sync-button">Ajustar Manualmente e Iniciar</button>
+                <button onclick="setInitialTime()" id="sync-button">Adjust Manually and Start</button>
             </div>
             
-            <label id="initial-time-label" for="initial-time">Ajuste Manual: Defina a hora exata atual *do Servidor 1* (HH:MM 24h):</label>
+            <label id="initial-time-label" for="initial-time">Manual Adjust: Set the exact current time *for Server 1* (HH:MM 24h):</label>
             <input type="time" id="initial-time" value="13:00"> 
 
             <p id="speed-factor-info" style="font-size: 0.9em; color: #888; margin-bottom: 15px;">
-                *A hora correrá 7.0 vezes mais rápido.
+                *Time will run 7.0 times faster.
             </p>
             
-            <div id="submenu-title" class="submenu-title">Recursos Adicionais</div>
+            <div id="submenu-title" class="submenu-title">Additional Resources</div>
 
             <div class="fast-links">
                 <a href="https://mapgenie.io/tarkov" target="_blank" class="mapgenie-link">
@@ -367,39 +379,34 @@
 </div>
 
 <div class="footer">
-    <span id="footer-text">Criado por:</span> 
+    <span id="footer-text">Created by:</span> 
     <a href="https://www.youtube.com/@pandoriunmc" target="_blank">Pandoriun</a> 
-    Por: 
+    By: 
     <a href="https://gemini.google.com" target="_blank">GEMINI<span class="gemini-logo"></span></a>
 </div>
 
 <script>
-    // --- CONSTANTES ATUALIZADAS ---
-    const SPEED_FACTOR = 7; // Correto
+    // --- CONSTANTES ---
+    const SPEED_FACTOR = 7;
     const ONE_HOUR_IN_MS = 60 * 60 * 1000;
-    const THREE_HOURS_IN_MS = 3 * ONE_HOUR_IN_MS; // UTC+3 Offset (3 horas)
+    const THREE_HOURS_IN_MS = 3 * ONE_HOUR_IN_MS; 
     const TWELVE_HOURS_IN_MS = 12 * ONE_HOUR_IN_MS;
-    const ONE_DAY_IN_MS = 24 * ONE_HOUR_IN_MS; // 86,400,000 ms
+    const ONE_DAY_IN_MS = 24 * ONE_HOUR_IN_MS; 
 
-    // Corrigido para ser o tempo REAL que leva para Tarkov avançar 24 horas (um dia de Tarkov)
-    const ACCELERATED_DAY_IN_MS = ONE_DAY_IN_MS / SPEED_FACTOR; 
-
-    // Horário de fim dos Cultistas (7:00 da manhã de Tarkov)
+    // Horário dos Cultistas (7:00 da manhã e 22:00 da noite)
     const CULTIST_END_HOUR = 7; 
     const CULTIST_END_MS_OF_DAY = CULTIST_END_HOUR * ONE_HOUR_IN_MS;
-    const CULTIST_START_HOUR = 22; // 22:00 de Tarkov
-    const CULTIST_START_MS_OF_DAY = CULTIST_START_HOUR * ONE_HOUR_IN_MS;
+    const CULTIST_START_HOUR = 22; 
     
-    let startTime; // Real timestamp (Date.now()) quando o relógio começou
-    let initialTarkovTime1Ms; // Milissegundos do dia de Tarkov (0 a 86,400,000) no momento do início
-
+    let startTime; 
+    let initialTarkovTime1Ms; 
     let intervalId;
-    let currentLanguage = 'pt';
+    let currentLanguage = 'en'; // Mantido 'en' como padrão inicial
 
     // --- OBJETOS DE TRADUÇÃO ATUALIZADOS ---
     const translations = {
         pt: {
-            title: "TARKOV TIMER by Pandoriun",
+            title: "TARKOV TIMER por Pandoriun",
             cultist_alert: "RISCO DE CULTISTAS",
             cultist_countdown_part1: "restantes - ",
             cultist_countdown_part2: " Servidor ",
@@ -437,6 +444,46 @@
                 'TARDE': 'AFTERNOON', 'NOITE': 'NIGHT' 
             },
             alert_prompt: "Please enter the initial time (HH:MM)."
+        },
+        es: {
+            title: "TEMPORIZADOR TARKOV por Pandoriun",
+            cultist_alert: "RIESGO DE CULTISTAS",
+            cultist_countdown_part1: " restantes - ",
+            cultist_countdown_part2: " Servidor ",
+            server1: "Servidor 1",
+            server2: "Servidor 2 (+12h)",
+            sync_title: "Sincronizar Hora",
+            sync_online_button: "SINCRONIZAR ONLINE",
+            sync_manual_button: "Ajustar Manualmente e Iniciar",
+            initial_time_label: "Ajuste Manual: Establece la hora actual exacta *para el Servidor 1* (HH:MM 24h):",
+            speed_info: "*El tiempo correrá 7.0 veces más rápido.",
+            submenu_title: "Recursos Adicionales",
+            footer_text: "Creado por:",
+            status_names: { 
+                'MADRUGADA': 'MADRUGADA', 'MANHÃ': 'MAÑANA', 'DIA': 'DÍA', 
+                'TARDE': 'TARDE', 'NOITE': 'NOCHE' 
+            },
+            alert_prompt: "Por favor, introduce la hora inicial (HH:MM)."
+        },
+        ru: {
+            title: "ТАЙМЕР TARKOV от Pandoriun",
+            cultist_alert: "РИСК КУЛЬТИСТОВ",
+            cultist_countdown_part1: " осталось - ",
+            cultist_countdown_part2: " Сервер ",
+            server1: "Сервер 1",
+            server2: "Сервер 2 (+12ч)",
+            sync_title: "Синхронизировать Время",
+            sync_online_button: "СИНХРОНИЗИРОВАТЬ ОНЛАЙН",
+            sync_manual_button: "Ручная Настройка и Запуск",
+            initial_time_label: "Ручная Настройка: Установите текущее точное время *для Сервера 1* (ЧЧ:ММ 24ч):",
+            speed_info: "*Время будет идти в 7.0 раз быстрее.",
+            submenu_title: "Дополнительные Ресурсы",
+            footer_text: "Создано:",
+            status_names: { 
+                'MADRUGADA': 'РАССВЕТ', 'MANHÃ': 'УТРО', 'DIA': 'ДЕНЬ', 
+                'TARDE': 'ПОЛДЕНЬ', 'NOITE': 'НОЧЬ' 
+            },
+            alert_prompt: "Пожалуйста, введите начальное время (ЧЧ:ММ)."
         }
     };
     // --- FIM DOS OBJETOS DE TRADUÇÃO ---
@@ -477,7 +524,7 @@
     }
     
     /**
-     * NOVO CÁLCULO DE COUNTDOWN
+     * CÁLCULO DE COUNTDOWN
      * @param {number} currentTarkovTimeMs O tempo de Tarkov em milissegundos (0 a ONE_DAY_IN_MS).
      * @param {string} serverName O nome do servidor ('1' ou '2').
      * @returns {{isActive: boolean, countdown: string, server: string}}
@@ -506,7 +553,7 @@
             remainingMs = CULTIST_END_MS_OF_DAY - currentTarkovTimeMs;
         }
 
-        if (remainingMs < 0) remainingMs = 0; // Prevenção de erros
+        if (remainingMs < 0) remainingMs = 0; 
 
         const totalSeconds = Math.floor(remainingMs / 1000);
         const hours = String(Math.floor(totalSeconds / 3600)).padStart(2, '0');
@@ -533,9 +580,8 @@
 
         let activeCheck = null;
 
-        // Prioriza o contador maior (o que está mais longe de acabar), para dar mais tempo ao jogador
+        // Prioriza o contador maior
         if (check1.isActive && check2.isActive) {
-            // Compara os milissegundos restantes, o maior é o mais importante
             if (check1.countdown > check2.countdown) {
                  activeCheck = check1;
             } else {
@@ -568,15 +614,13 @@
         // Aceleração do tempo real decorrido
         const elapsedTarkovTime = elapsedRealTime * SPEED_FACTOR;
         
-        // CORREÇÃO DE LÓGICA: O módulo agora usa o tempo real que representa um dia de Tarkov
-        // O tempo total de jogo (em milissegundos) é o tempo de início + o tempo acelerado decorrido.
+        // Milissegundos de Tarkov desde o início do dia
         const totalTarkovTimeMs = initialTarkovTime1Ms + elapsedTarkovTime;
         
-        // O módulo garante que o tempo se repita a cada 24 horas de Tarkov (86,400,000 ms)
+        // Garante que o tempo se repita a cada 24 horas de Tarkov
         const timeInDayMs1 = totalTarkovTimeMs % ONE_DAY_IN_MS; 
         
         // --- CLOCK 1 (Principal) ---
-        // Converte os milissegundos do dia em horas/min/seg
         const h1 = Math.floor(timeInDayMs1 / ONE_HOUR_IN_MS);
         const m1 = Math.floor((timeInDayMs1 % ONE_HOUR_IN_MS) / (60 * 1000));
         const s1 = Math.floor((timeInDayMs1 % (60 * 1000)) / 1000);
@@ -600,11 +644,6 @@
 
     /**
      * Atualiza as cores e o estado visual da tela.
-     * @param {string} clockElementId ID do elemento do relógio.
-     * @param {string} statusElementId ID do elemento do status.
-     * @param {number} hour24 Hora de Tarkov (0-23).
-     * @param {number} timeInDayMs Tempo de Tarkov em milissegundos (0 a 86,400,000).
-     * @param {boolean} isServer1 Se é o servidor principal (para cor de fundo e estrelas).
      */
     function updateVisuals(clockElementId, statusElementId, hour24, timeInDayMs, isServer1) {
         const T = translations[currentLanguage];
@@ -613,6 +652,7 @@
         const [clockColor, shadowColor, backgroundColor] = STATUS_MAP[colorCategory];
         
         const internalStatusName = getInternalStatusName(hour24);
+        // Garante que a tradução exista antes de tentar usar
         const displayStatus = T.status_names[internalStatusName] || internalStatusName; 
         
         const clockElement = document.getElementById(clockElementId);
@@ -629,7 +669,7 @@
         if (isServer1) {
             document.querySelector('.container').style.backgroundColor = backgroundColor;
 
-            // --- LÓGICA DE ESTRELAS (Baseada na hora de Tarkov) ---
+            // --- LÓGICA DE ESTRELAS ---
             const h = hour24;
             const m = Math.floor((timeInDayMs % ONE_HOUR_IN_MS) / (60 * 1000));
             const totalMinutes = h * 60 + m; 
@@ -664,22 +704,14 @@
         updateTarkovClock(); 
     }
     
-    // --- NOVO: FUNÇÃO DE SINCRONIZAÇÃO ONLINE (Baseada no tempo real e UTC+3) ---
+    // --- FUNÇÃO DE SINCRONIZAÇÃO ONLINE ---
     function syncOnline() {
-        // 1. Captura o timestamp real
         startTime = Date.now(); 
         
-        // 2. Calcula o "tempo base de Tarkov" em milissegundos
-        // Lógica de Tarkov: Tarkov Time = (Real Time * 7) + 3 horas (Offset)
-        const realTimeSinceEpoch = startTime; // Milissegundos desde 1970/01/01 00:00:00 UTC
-        
-        // O tempo que o relógio de Tarkov teria percorrido se tivesse começado no Unix Epoch
+        const realTimeSinceEpoch = startTime;
         const acceleratedTimeSinceEpoch = realTimeSinceEpoch * SPEED_FACTOR;
-        
-        // Adiciona o offset de 3 horas (UTC+3)
         const tarkovTimeWithOffset = acceleratedTimeSinceEpoch + THREE_HOURS_IN_MS;
 
-        // O milissegundo inicial do dia no Tarkov é o módulo por 24h (86,400,000 ms)
         initialTarkovTime1Ms = tarkovTimeWithOffset % ONE_DAY_IN_MS;
         
         startClock();
@@ -697,17 +729,16 @@
 
         const [hours, minutes] = timeInput.split(':').map(Number);
         
-        // 1. Captura o timestamp real
         startTime = Date.now(); 
 
-        // 2. Calcula o ponto de partida em milissegundos de Tarkov para o Servidor 1 (0 a 86,400,000)
+        // Milissegundos de Tarkov para o Servidor 1
         initialTarkovTime1Ms = (hours * ONE_HOUR_IN_MS) + (minutes * 60 * 1000);
 
         startClock();
     }
 
 
-    // --- Funções de Tradução, Canvas e Inicialização (Mantidas) ---
+    // --- Funções de Tradução e Inicialização ---
 
     function setLanguage(lang) {
         currentLanguage = lang;
@@ -780,7 +811,6 @@
         const h1 = hours;
         const m = minutes;
         
-        // Tempo em milissegundos para a exibição inicial
         const initialTime1Ms = (h1 * ONE_HOUR_IN_MS) + (m * 60 * 1000);
 
         document.getElementById('tarkov-clock-1').textContent = `${String(h1).padStart(2, '0')}:${String(m).padStart(2, '0')}:00`;
@@ -812,7 +842,7 @@
             }
         });
         
-        // NOVO: Sincronização automática ao carregar a página 
+        // Sincronização automática ao carregar a página 
         syncOnline(); 
     }
 
