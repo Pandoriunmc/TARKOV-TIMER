@@ -13,7 +13,7 @@
     <meta name="apple-mobile-web-app-title" content="Tarkov Timer">
 
     <style>
-        /* Estilos Base */
+        /* Estilos Base (mantidos) */
         body {
             font-family: 'Consolas', monospace, sans-serif;
             background-color: #1a1a1a;
@@ -46,7 +46,6 @@
             transition: background-color 1.5s ease; /* Transição suave para a cor de fundo */
         }
         
-        /* NOVO: Estilos do Seletor de Idioma */
         .language-selector {
             position: absolute;
             top: 10px;
@@ -63,10 +62,10 @@
             font-size: 0.9em;
             cursor: pointer;
             outline: none;
-            appearance: none; /* Remove a seta padrão em alguns browsers */
+            appearance: none;
         }
         
-        /* TÍTULO TEMÁTICO */
+        /* TÍTULO TEMÁTICO (mantidos) */
         .label-main {
             font-family: 'Orbitron', sans-serif; 
             font-size: 1.8em; 
@@ -78,7 +77,7 @@
             text-shadow: 0 0 8px rgba(247, 166, 29, 0.6);
         }
 
-        /* --- ALERTA DE CULTISTAS --- */
+        /* --- ALERTA DE CULTISTAS (mantidos) --- */
         #cultist-alert-wrapper {
             height: 3.5em; 
             margin-bottom: 0px; 
@@ -111,7 +110,6 @@
             text-shadow: none;
         }
 
-        /* ESTILO PARA DESTAQUE DO SERVIDOR NO ALERTA DE CULTISTAS */
         #cultist-alert-countdown .server-highlight {
             font-weight: bold;
             font-size: 1.1em; 
@@ -125,18 +123,17 @@
         }
         /* --- FIM DO ALERTA --- */
 
-        /* Canvas para Estrelas */
+        /* Canvas para Estrelas (mantidos) */
         #stars-canvas {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            opacity: 0; /* Opacidade base, controlada por JS */
-            transition: opacity 2s ease-in-out; /* Transição suave */
+            opacity: 0;
+            transition: opacity 2s ease-in-out;
             z-index: 1;
-            pointer-events: none; /* Garante que o canvas não bloqueie interações com o conteúdo */
-            /* Aplica a máscara radial para mostrar estrelas apenas no centro */
+            pointer-events: none;
             mask-image: radial-gradient(circle at center, black 0%, black 50%, transparent 80%);
             -webkit-mask-image: radial-gradient(circle at center, black 0%, black 50%, transparent 80%);
         }
@@ -157,7 +154,15 @@
         .controls { margin-top: 15px; padding-top: 15px; border-top: 1.5px dashed #555; }
         .controls h2 { margin-top: 0; }
         .controls label, .controls input, .controls button { display: block; margin: 8px auto; font-size: 1em; }
-
+        
+        .sync-buttons-wrapper {
+            display: flex;
+            flex-direction: column; /* Para empilhar os botões */
+            align-items: center;
+            gap: 10px; /* Espaço entre os botões */
+            margin-bottom: 15px;
+        }
+        
         .controls input[type="time"] { 
             background-color: #2e2e2e; 
             color: #fff; 
@@ -183,12 +188,22 @@
             transition: background-color 0.3s, border-color 0.3s; 
             text-transform: uppercase; 
             font-weight: bold; 
-            margin-bottom: 10px;
+            margin-bottom: 0px; /* Removido o margin-bottom para usar o gap do wrapper */
         }
         .controls button:hover { background-color: #944e00; border-color: #fff; }
 
+        /* NOVO ESTILO: Botão de Sincronização Online (Azul) */
+        #sync-online-button {
+            background-color: #1e88e5; /* Azul mais escuro */
+            border-color: #64b5f6; /* Azul mais claro para a borda */
+        }
+        #sync-online-button:hover {
+            background-color: #42a5f5; /* Azul um pouco mais claro no hover */
+            border-color: white;
+        }
+
         
-        /* ESTILOS DOS LINKS RÁPIDOS */
+        /* Estilos dos Links (mantidos) */
         .submenu-title {
             font-size: 1.1em; 
             color: #f7a61d;
@@ -226,7 +241,6 @@
             color: #1a1a1a;
         }
 
-        /* Estilo específico para o link da MapGenie (Imagem) */
         .mapgenie-link {
             padding: 2px 8px !important; 
         }
@@ -235,14 +249,12 @@
             vertical-align: middle;
         }
 
-        /* ESTILOS DOS SUBMENUS (LINKS ADICIONAIS) */
         .submenu-container {
             margin-top: 15px; 
             padding-top: 10px; 
             border-top: 1px dashed #555;
         }
         
-        /* Título movido para o topo do .controls (agora é .submenu-title) */
         .submenu-list {
             display: flex;
             flex-wrap: wrap;
@@ -274,6 +286,7 @@
             #cultist-alert-wrapper { height: 3em; }
             .fast-links a, .submenu-list a { font-size: 0.7em; padding: 3px 6px; }
             .mapgenie-link img { height: 16px; }
+            .sync-buttons-wrapper { flex-direction: column; gap: 8px; }
         }
     </style>
 </head>
@@ -312,14 +325,18 @@
 
         <div class="controls">
             <h2 id="sync-title">Sincronizar Hora</h2>
-            <label id="initial-time-label" for="initial-time">Defina a hora exata atual *do Servidor 1* (HH:MM 24h):</label>
             
+            <div class="sync-buttons-wrapper">
+                <button onclick="syncOnline()" id="sync-online-button">SINCRONIZAR ONLINE</button>
+                
+                <button onclick="setInitialTime()" id="sync-button">Ajustar Manualmente e Iniciar</button>
+            </div>
+            
+            <label id="initial-time-label" for="initial-time">Ajuste Manual: Defina a hora exata atual *do Servidor 1* (HH:MM 24h):</label>
             <input type="time" id="initial-time" value="13:00"> 
 
-            <button onclick="setInitialTime()" id="sync-button">Iniciar e Sincronizar Relógios</button>
-            
             <p id="speed-factor-info" style="font-size: 0.9em; color: #888; margin-bottom: 15px;">
-                *A hora correrá 7.1 vezes mais rápido.
+                *A hora correrá 7.0 vezes mais rápido.
             </p>
             
             <div id="submenu-title" class="submenu-title">Recursos Adicionais</div>
@@ -356,16 +373,20 @@
 </div>
 
 <script>
-    const SPEED_FACTOR = 7.1; 
-    const TWELVE_HOURS_IN_MS = 12 * 60 * 60 * 1000;
+    // --- CONSTANTES ATUALIZADAS ---
+    const SPEED_FACTOR = 7; // Alterado para 7, o valor correto
+    const ONE_HOUR_IN_MS = 60 * 60 * 1000;
+    const THREE_HOURS_IN_MS = 3 * ONE_HOUR_IN_MS; // UTC+3 Offset
+    const TWELVE_HOURS_IN_MS = 12 * ONE_HOUR_IN_MS;
+    const ONE_DAY_IN_MS = 24 * ONE_HOUR_IN_MS;
     const CULTIST_END_HOUR = 7; 
     
     let startTime;
     let initialTarkovTime1;
     let intervalId;
-    let currentLanguage = 'pt'; // Define o idioma padrão
+    let currentLanguage = 'pt';
 
-    // --- OBJETOS DE TRADUÇÃO ---
+    // --- OBJETOS DE TRADUÇÃO ATUALIZADOS ---
     const translations = {
         pt: {
             title: "TARKOV TIMER by Pandoriun",
@@ -375,9 +396,10 @@
             server1: "Servidor 1",
             server2: "Servidor 2 (+12h)",
             sync_title: "Sincronizar Hora",
-            initial_time_label: "Defina a hora exata atual *do Servidor 1* (HH:MM 24h):",
-            sync_button: "Iniciar e Sincronizar Relógios",
-            speed_info: "*A hora correrá 7.1 vezes mais rápido.",
+            sync_online_button: "SINCRONIZAR ONLINE",
+            sync_manual_button: "Ajustar Manualmente e Iniciar",
+            initial_time_label: "Ajuste Manual: Defina a hora exata atual *do Servidor 1* (HH:MM 24h):",
+            speed_info: "*A hora correrá 7.0 vezes mais rápido.", // Atualizado
             submenu_title: "Recursos Adicionais",
             footer_text: "Criado por:",
             status_names: { 
@@ -394,9 +416,10 @@
             server1: "Server 1",
             server2: "Server 2 (+12h)",
             sync_title: "Synchronize Time",
-            initial_time_label: "Set the exact current time *for Server 1* (HH:MM 24h):",
-            sync_button: "Start and Sync Clocks",
-            speed_info: "*Time will run 7.1 times faster.",
+            sync_online_button: "SYNC ONLINE",
+            sync_manual_button: "Adjust Manually and Start",
+            initial_time_label: "Manual Adjust: Set the exact current time *for Server 1* (HH:MM 24h):",
+            speed_info: "*Time will run 7.0 times faster.", // Atualizado
             submenu_title: "Additional Resources",
             footer_text: "Created by:",
             status_names: { 
@@ -409,44 +432,42 @@
     // --- FIM DOS OBJETOS DE TRADUÇÃO ---
 
 
-    // Mapeamento de CORES/ESTILOS usando os nomes das CATEGORIAS DETALHADAS
+    // Mapeamento de CORES/ESTILOS (mantido)
     const STATUS_MAP = {
-        // [Cor do Relógio, Sombra do Relógio, Cor do Fundo]
         "MADRUGADA_COR": ["#ADD8E6", "rgba(173, 216, 230, 0.8)", "rgba(10, 10, 30, 0.95)"], 
-        "AMANHECER":     ["#FFD700", "rgba(255, 215, 0, 0.8)", "rgba(50, 40, 20, 0.95)"], 
-        "MANHÃ_COR":     ["#ADFF2F", "rgba(173, 255, 47, 0.8)", "rgba(30, 50, 20, 0.95)"], 
-        "DIA":           ["#FFD700", "rgba(255, 215, 0, 0.8)", "rgba(60, 60, 30, 0.95)"], 
-        "TARDE_COR":     ["#FFA500", "rgba(255, 165, 0, 0.8)", "rgba(55, 35, 10, 0.95)"],
-        "ENTARDECER":    ["#FF4500", "rgba(255, 69, 0, 0.8)", "rgba(40, 20, 10, 0.95)"], 
-        "ANOITECER":     ["#9370DB", "rgba(147, 112, 219, 0.8)", "rgba(25, 15, 35, 0.95)"], 
-        "NOITE_COR":     ["#ADD8E6", "rgba(173, 216, 230, 0.8)", "rgba(15, 15, 40, 0.95)"],   
+        "AMANHECER":      ["#FFD700", "rgba(255, 215, 0, 0.8)", "rgba(50, 40, 20, 0.95)"], 
+        "MANHÃ_COR":      ["#ADFF2F", "rgba(173, 255, 47, 0.8)", "rgba(30, 50, 20, 0.95)"], 
+        "DIA":            ["#FFD700", "rgba(255, 215, 0, 0.8)", "rgba(60, 60, 30, 0.95)"], 
+        "TARDE_COR":      ["#FFA500", "rgba(255, 165, 0, 0.8)", "rgba(55, 35, 10, 0.95)"],
+        "ENTARDECER":     ["#FF4500", "rgba(255, 69, 0, 0.8)", "rgba(40, 20, 10, 0.95)"], 
+        "ANOITECER":      ["#9370DB", "rgba(147, 112, 219, 0.8)", "rgba(25, 15, 35, 0.95)"], 
+        "NOITE_COR":      ["#ADD8E6", "rgba(173, 216, 230, 0.8)", "rgba(15, 15, 40, 0.95)"],   
     };
 
-    // Função para o rótulo do status (NOME interno, não traduzido)
-    function getInternalStatusName(hour24) {
-        if (hour24 >= 0 && hour24 < 6) return 'MADRUGADA';      // 00:00 - 05:59
-        if (hour24 >= 6 && hour24 < 8) return 'MANHÃ';          // 06:00 - 07:59
-        if (hour24 >= 8 && hour24 < 12) return 'DIA';           // 08:00 - 11:59
-        if (hour24 >= 12 && hour24 < 18) return 'TARDE';        // 12:00 - 17:59
-        if (hour24 >= 18 && hour24 < 24) return 'NOITE';        // 18:00 - 23:59
+    // Funções de Status e Cores (mantidas)
+    function getInternalStatusName(hour24) { /* ... */
+        if (hour24 >= 0 && hour24 < 6) return 'MADRUGADA';
+        if (hour24 >= 6 && hour24 < 8) return 'MANHÃ'; 
+        if (hour24 >= 8 && hour24 < 12) return 'DIA'; 
+        if (hour24 >= 12 && hour24 < 18) return 'TARDE'; 
+        if (hour24 >= 18 && hour24 < 24) return 'NOITE'; 
         return 'UNKNOWN';
     }
 
-    // Função para obter a categoria da cor (COR de fundo/relógio)
-    function getColorCategory(hour24) {
-        if (hour24 >= 0 && hour24 < 4) return 'MADRUGADA_COR';      // 00:00 - 03:59
-        if (hour24 >= 4 && hour24 < 6) return 'AMANHECER';     // 04:00 - 05:59
-        if (hour24 >= 6 && hour24 < 8) return 'MANHÃ_COR';       // 06:00 - 07:59
-        if (hour24 >= 8 && hour24 < 12) return 'DIA';          // 08:00 - 11:59
-        if (hour24 >= 12 && hour24 < 17) return 'TARDE_COR';       // 12:00 - 16:59
-        if (hour24 >= 17 && hour24 < 19) return 'ENTARDECER';    // 17:00 - 18:59
-        if (hour24 >= 19 && hour24 < 21) return 'ANOITECER';     // 19:00 - 20:59
-        if (hour24 >= 21 && hour24 < 24) return 'NOITE_COR';         // 21:00 - 23:59
+    function getColorCategory(hour24) { /* ... */
+        if (hour24 >= 0 && hour24 < 4) return 'MADRUGADA_COR';
+        if (hour24 >= 4 && hour24 < 6) return 'AMANHECER'; 
+        if (hour24 >= 6 && hour24 < 8) return 'MANHÃ_COR'; 
+        if (hour24 >= 8 && hour24 < 12) return 'DIA'; 
+        if (hour24 >= 12 && hour24 < 17) return 'TARDE_COR'; 
+        if (hour24 >= 17 && hour24 < 19) return 'ENTARDECER'; 
+        if (hour24 >= 19 && hour24 < 21) return 'ANOITECER'; 
+        if (hour24 >= 21 && hour24 < 24) return 'NOITE_COR'; 
         return 'UNKNOWN'; 
     }
     
-    // CORRIGIDO: Implementação completa da lógica do Cultista
-    function calculateCountdown(currentTime, serverName) {
+    // Funções Cultist (mantidas)
+    function calculateCountdown(currentTime, serverName) { /* ... */
         const h = currentTime.getHours();
         const isCultistTime = (h >= 22 || h < CULTIST_END_HOUR); 
         
@@ -478,8 +499,7 @@
         };
     }
 
-    // CORRIGIDO: Implementação completa da lógica do Cultista e tradução
-    function updateCultistAlert(currentTarkovTime1, currentTarkovTime2) {
+    function updateCultistAlert(currentTarkovTime1, currentTarkovTime2) { /* ... */
         const T = translations[currentLanguage];
         const alertWrapper = document.getElementById('cultist-alert-wrapper');
         const countdownElement = document.getElementById('cultist-alert-countdown');
@@ -513,28 +533,39 @@
     }
 
 
-    // --- FUNÇÕES PRINCIPAIS ---
+    // --- FUNÇÕES PRINCIPAIS (updateTarkovClock mantida, lógica de tempo) ---
 
     function updateTarkovClock() {
         if (!startTime || !initialTarkovTime1) return;
 
         const elapsedRealTime = Date.now() - startTime;
         const elapsedTarkovTime = elapsedRealTime * SPEED_FACTOR;
+        
+        // CORREÇÃO DE LÓGICA: O tempo de Tarkov deve envolver (initialTarkovTime1 + elapsedTarkovTime) % ONE_DAY_IN_MS
+        const totalTarkovTimeMs = initialTarkovTime1.getTime() + elapsedTarkovTime;
 
+        // O módulo aqui garante que o tempo se repita a cada 24h
+        const timeInDayMs1 = totalTarkovTimeMs % ONE_DAY_IN_MS; 
+        
         // --- CLOCK 1 (Principal) ---
-        const currentTarkovTime1 = new Date(initialTarkovTime1.getTime() + elapsedTarkovTime);
-        const h1 = currentTarkovTime1.getHours();
-        const m1 = String(currentTarkovTime1.getMinutes()).padStart(2, '0');
-        const s1 = String(currentTarkovTime1.getSeconds()).padStart(2, '0');
+        const currentTarkovTime1 = new Date(timeInDayMs1); // Cria um objeto Date a partir dos milissegundos do dia
+        currentTarkovTime1.setUTCHours(currentTarkovTime1.getUTCHours()); // Garante que a hora seja a hora real do milissegundo.
+
+        const h1 = currentTarkovTime1.getUTCHours();
+        const m1 = String(currentTarkovTime1.getUTCMinutes()).padStart(2, '0');
+        const s1 = String(currentTarkovTime1.getUTCSeconds()).padStart(2, '0');
 
         document.getElementById('tarkov-clock-1').textContent = `${String(h1).padStart(2, '0')}:${m1}:${s1}`;
         updateVisuals('tarkov-clock-1', 'status-1', h1, currentTarkovTime1, true); 
         
         // --- CLOCK 2 (+12 horas) ---
-        const currentTarkovTime2 = new Date(currentTarkovTime1.getTime() + TWELVE_HOURS_IN_MS);
-        const h2 = currentTarkovTime2.getHours();
-        const m2 = String(currentTarkovTime2.getMinutes()).padStart(2, '0');
-        const s2 = String(currentTarkovTime2.getSeconds()).padStart(2, '0');
+        const timeInDayMs2 = (totalTarkovTimeMs + TWELVE_HOURS_IN_MS) % ONE_DAY_IN_MS;
+        const currentTarkovTime2 = new Date(timeInDayMs2);
+        currentTarkovTime2.setUTCHours(currentTarkovTime2.getUTCHours()); // Usa UTC também
+
+        const h2 = currentTarkovTime2.getUTCHours();
+        const m2 = String(currentTarkovTime2.getUTCMinutes()).padStart(2, '0');
+        const s2 = String(currentTarkovTime2.getUTCSeconds()).padStart(2, '0');
         
         document.getElementById('tarkov-clock-2').textContent = `${String(h2).padStart(2, '0')}:${m2}:${s2}`;
         updateVisuals('tarkov-clock-2', 'status-2', h2, currentTarkovTime2, false); 
@@ -542,38 +573,33 @@
         updateCultistAlert(currentTarkovTime1, currentTarkovTime2);
     }
 
-    // updateVisuals com a COR DO NOME DE STATUS IGUAL À COR DO RELÓGIO E TRADUÇÃO
     function updateVisuals(clockElementId, statusElementId, hour24, fullTime, isServer1) {
+        // ... (Corpo da função mantido) ...
         const T = translations[currentLanguage];
         
-        // 1. OBTÉM A CATEGORIA DE COR/FUNDO (DETALHADA)
         const colorCategory = getColorCategory(hour24);
         const [clockColor, shadowColor, backgroundColor] = STATUS_MAP[colorCategory];
         
-        // 2. OBTÉM O RÓTULO INTERNO E A TRADUÇÃO
         const internalStatusName = getInternalStatusName(hour24);
-        const displayStatus = T.status_names[internalStatusName] || internalStatusName; // Traduz ou usa o nome interno
+        const displayStatus = T.status_names[internalStatusName] || internalStatusName; 
         
         const clockElement = document.getElementById(clockElementId);
         const statusElement = document.getElementById(statusElementId);
         
-        // Aplica CORES
         clockElement.style.color = clockColor;
         clockElement.style.textShadow = `0 0 15px ${shadowColor}, 0 0 5px rgba(0, 0, 0, 0.9)`;
         
-        // Aplica o nome de status traduzido e sua cor
         statusElement.textContent = displayStatus;
         statusElement.style.color = clockColor; 
         statusElement.className = `status-category`; 
 
         
         if (isServer1) {
-            // Aplica a cor de fundo do container (usa a categoria DETALHADA)
             document.querySelector('.container').style.backgroundColor = backgroundColor;
 
-            // --- LÓGICA DE ESTRELAS COM OPACIDADE GRADATIVA (19:00 a 05:59) ---
-            const h = fullTime.getHours();
-            const m = fullTime.getMinutes();
+            // --- LÓGICA DE ESTRELAS (Baseada em UTC Time) ---
+            const h = fullTime.getUTCHours();
+            const m = fullTime.getUTCMinutes();
             const totalMinutes = h * 60 + m; 
 
             let opacity = 0;
@@ -603,7 +629,34 @@
         updateTarkovClock(); 
     }
     
-    // --- FUNÇÕES DE TRADUÇÃO E INICIALIZAÇÃO ---
+    // --- NOVO: FUNÇÃO DE SINCRONIZAÇÃO ONLINE (Baseada no tempo real e UTC+3) ---
+    function syncOnline() {
+        // 1. Captura o tempo real atual (em milissegundos)
+        startTime = Date.now(); 
+        const realTimeMs = startTime;
+
+        // 2. Aplica o fator de aceleração (x7) e o offset de UTC+3 (3 horas)
+        // A lógica do Tarkov é: Tarkov Time = (Real Time * 7) + 3 horas
+        const tarkovStartMs = (realTimeMs * SPEED_FACTOR) + THREE_HOURS_IN_MS;
+
+        // 3. O módulo por um dia deve ser aplicado.
+        // O valor base para a contagem será o tempo em milissegundos do dia no Tarkov.
+        const timeInDayMs = tarkovStartMs % ONE_DAY_IN_MS;
+        
+        // 4. Converte para um objeto Date, forçando-o a representar o tempo em UTC
+        // (Isso anula o fuso horário local e garante que as horas extraídas sejam as horas de Tarkov).
+        initialTarkovTime1 = new Date(timeInDayMs);
+        
+        // IMPORTANTE: Para que o relógio funcione corretamente a partir daqui,
+        // o updateTarkovClock deve usar getUTCHours/Minutes/Seconds
+        // e o initialTarkovTime1.getTime() deve ser tratado como o ponto inicial
+        // de tempo de Tarkov em milissegundos.
+
+        startClock();
+    }
+
+
+    // --- Funções de Tradução e Inicialização (Atualizadas para incluir o novo botão) ---
 
     function setLanguage(lang) {
         currentLanguage = lang;
@@ -615,8 +668,12 @@
         document.getElementById('server-label-1').textContent = T.server1;
         document.getElementById('server-label-2').textContent = T.server2;
         document.getElementById('sync-title').textContent = T.sync_title;
+        
+        // NOVOS BOTÕES
+        document.getElementById('sync-online-button').textContent = T.sync_online_button;
+        document.getElementById('sync-button').textContent = T.sync_manual_button;
+        
         document.getElementById('initial-time-label').textContent = T.initial_time_label;
-        document.getElementById('sync-button').textContent = T.sync_button;
         document.getElementById('speed-factor-info').textContent = T.speed_info;
         document.getElementById('submenu-title').textContent = T.submenu_title;
         document.getElementById('footer-text').textContent = T.footer_text;
@@ -625,12 +682,12 @@
         if (startTime) {
             updateTarkovClock();
         } else {
-            updateInitialDisplay(); // Atualiza status e alertas mesmo sem iniciar
+            updateInitialDisplay(); 
         }
     }
 
 
-    // --- Funções de Canvas (Mantidas) ---
+    // --- Funções de Canvas (mantidas) ---
     let canvas, ctx;
     const stars = [];
     const NUM_STARS = 500; 
@@ -638,7 +695,7 @@
     const STAR_COLOR = 'rgba(255, 255, 255, '; 
     
     function generateStar() { /* ... */ return {x: Math.random() * canvas.width,y: Math.random() * canvas.height,radius: Math.random() * MAX_STAR_SIZE + 0.5,alpha: Math.random() * 0.5 + 0.5 }; }
-    function drawStars() {
+    function drawStars() { /* ... */
         ctx.clearRect(0, 0, canvas.width, canvas.height); 
         for (let i = 0; i < stars.length; i++) {
             const star = stars[i];
@@ -648,7 +705,7 @@
             ctx.fill();
         }
     }
-    function initializeCanvasAndStars() { 
+    function initializeCanvasAndStars() { /* ... */
         canvas = document.getElementById('stars-canvas');
         ctx = canvas.getContext('2d');
         const container = document.querySelector('.container');
@@ -666,12 +723,12 @@
     }
 
 
-    // --- Funções de Sincronização e Inicialização (Mantidas e Atualizadas para Tradução) ---
+    // --- Função de Sincronização Manual (Mantida para ser a função de 'Ajustar Manualmente') ---
     function setInitialTime() {
         const timeInput = document.getElementById('initial-time').value;
         
         if (!timeInput) {
-            alert(translations[currentLanguage].alert_prompt); // Usa mensagem traduzida
+            alert(translations[currentLanguage].alert_prompt); 
             return;
         }
 
@@ -679,13 +736,15 @@
 
         startTime = Date.now(); 
 
+        // Cria o ponto de partida manual, tratado como UTC para ser compatível com o updateTarkovClock
         initialTarkovTime1 = new Date('2000/01/01');
-        initialTarkovTime1.setHours(hours, minutes, 0, 0); 
+        initialTarkovTime1.setUTCHours(hours, minutes, 0, 0); 
 
         startClock();
     }
 
-    function updateInitialDisplay() {
+    function updateInitialDisplay() { /* ... */
+        // Usa o tempo de inicialização manual para exibir antes da sincronização
         const initialValue = document.getElementById('initial-time').value;
         const [hours, minutes] = initialValue.split(':').map(Number);
         
@@ -695,7 +754,7 @@
         document.getElementById('tarkov-clock-1').textContent = `${String(h1).padStart(2, '0')}:${String(m).padStart(2, '0')}:00`;
         
         const initialTime1 = new Date('2000/01/01');
-        initialTime1.setHours(h1, m, 0, 0);
+        initialTime1.setUTCHours(h1, m, 0, 0);
         
         updateVisuals('tarkov-clock-1', 'status-1', h1, initialTime1, true);
         
@@ -704,7 +763,7 @@
         document.getElementById('tarkov-clock-2').textContent = `${String(h2).padStart(2, '0')}:${String(m).padStart(2, '0')}:00`;
         
         const initialTime2 = new Date('2000/01/01');
-        initialTime2.setHours(h2, m, 0, 0);
+        initialTime2.setUTCHours(h2, m, 0, 0);
         updateVisuals('tarkov-clock-2', 'status-2', h2, initialTime2, false);
         
         document.getElementById('cultist-alert-wrapper').classList.remove('active');
@@ -713,22 +772,22 @@
     function initializeClockDisplay() {
         initializeCanvasAndStars();
         
-        // 1. Define o idioma inicial (Português, padrão)
         const initialLang = document.getElementById('language-select').value;
         setLanguage(initialLang); 
         
-        // 2. Configura a exibição inicial
         updateInitialDisplay();
-        
-        // 3. Listener do Enter
+
+        // Listener do Enter
         const timeInput = document.getElementById('initial-time');
-        
         timeInput.addEventListener('keydown', function(event) {
             if (event.key === 'Enter' || event.keyCode === 13) {
                 event.preventDefault(); 
                 setInitialTime();
             }
         });
+        
+        // NOVO: Sincronização automática ao carregar a página (opcional, mas bom para um timer online)
+        // syncOnline(); 
     }
 
     window.onload = initializeClockDisplay; 
